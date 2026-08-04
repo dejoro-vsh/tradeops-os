@@ -15,7 +15,17 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { jobNumber, agentEmail, status, emailThreadId, shipperName, consigneeName, commodity, transportMode, loadType, weightKgs, volumeCbm, vesselName } = body;
+    const { 
+      jobNumber, agentEmail, status, emailThreadId, 
+      shipperName, consigneeName, pol, pod, 
+      readyTime, cutOff, etd, eta, 
+      commodity, carrier, volumeRaw, 
+      weightKgs, volumeCbm, podCharge, ofps 
+    } = body;
+
+    if (!jobNumber) {
+      return NextResponse.json({ error: 'jobNumber is required' }, { status: 400 });
+    }
 
     // Check if job exists
     const existingJob = await prisma.job.findUnique({
@@ -28,38 +38,53 @@ export async function POST(req: Request) {
         where: { jobNumber },
         data: {
           status: status || existingJob.status,
+          agentEmail: agentEmail || existingJob.agentEmail,
           shipperName: shipperName || existingJob.shipperName,
           consigneeName: consigneeName || existingJob.consigneeName,
+          pol: pol || existingJob.pol,
+          pod: pod || existingJob.pod,
+          readyTime: readyTime || existingJob.readyTime,
+          cutOff: cutOff || existingJob.cutOff,
+          etd: etd || existingJob.etd,
+          eta: eta || existingJob.eta,
           commodity: commodity || existingJob.commodity,
-          transportMode: transportMode || existingJob.transportMode,
-          loadType: loadType || existingJob.loadType,
+          carrier: carrier || existingJob.carrier,
+          volumeRaw: volumeRaw || existingJob.volumeRaw,
           weightKgs: weightKgs || existingJob.weightKgs,
           volumeCbm: volumeCbm || existingJob.volumeCbm,
-          vesselName: vesselName || existingJob.vesselName,
+          podCharge: podCharge || existingJob.podCharge,
+          ofps: ofps || existingJob.ofps,
         }
       });
     } else {
       job = await prisma.job.create({
         data: {
           jobNumber,
-          agentEmail,
+          agentEmail: agentEmail || '',
           status: status || 'NEW',
           emailThreadId,
           shipperName,
           consigneeName,
+          pol,
+          pod,
+          readyTime,
+          cutOff,
+          etd,
+          eta,
           commodity,
-          transportMode,
-          loadType,
+          carrier,
+          volumeRaw,
           weightKgs,
           volumeCbm,
-          vesselName
+          podCharge,
+          ofps
         }
       });
     }
 
     return NextResponse.json(job, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving job:", error);
-    return NextResponse.json({ error: 'Failed to save job' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to save job', details: error.message }, { status: 500 });
   }
 }

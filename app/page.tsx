@@ -7,8 +7,12 @@ type Job = {
   jobNumber: string;
   agentEmail: string;
   status: string;
-  vesselName: string | null;
+  pol: string | null;
+  pod: string | null;
+  eta: string | null;
+  etd: string | null;
   shipperName: string | null;
+  consigneeName: string | null;
 };
 
 export default function Home() {
@@ -61,11 +65,25 @@ export default function Home() {
               <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem' }}>Waiting for n8n to send Pre-advise emails...</p>
             </div>
           ) : jobs.map(job => (
-            <div key={job.id} style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${job.status === 'NEW' ? '#3b82f6' : job.status === 'PENDING_VESSEL' ? '#f59e0b' : '#10b981'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={job.id} style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${job.status === 'NEW' ? '#3b82f6' : job.status === 'PENDING_VESSEL' ? '#f59e0b' : '#10b981'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <strong style={{ display: 'block', fontSize: '1.1rem' }}>{job.jobNumber}</strong>
-                <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Agent: {job.agentEmail} | Status: <span style={{ color: '#fff' }}>{job.status}</span></span>
-                {job.vesselName && <span style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem', marginTop: '0.2rem' }}>Vessel: {job.vesselName}</span>}
+                <strong style={{ display: 'block', fontSize: '1.2rem', color: '#fff' }}>{job.jobNumber}</strong>
+                <span style={{ color: '#94a3b8', fontSize: '0.9rem', display: 'block', margin: '4px 0' }}>Agent: {job.agentEmail}</span>
+                
+                {(job.pol || job.pod) && (
+                  <div style={{ display: 'flex', gap: '8px', color: '#3b82f6', fontSize: '0.9rem', margin: '4px 0' }}>
+                    <span>📍 {job.pol || '?'}</span> 
+                    <span>➔</span> 
+                    <span>🏁 {job.pod || '?'}</span>
+                  </div>
+                )}
+                
+                {(job.etd || job.eta) && (
+                  <div style={{ display: 'flex', gap: '16px', color: '#10b981', fontSize: '0.85rem', marginTop: '4px' }}>
+                    <span>🚢 ETD: {job.etd || 'TBA'}</span>
+                    <span>⚓ ETA: {job.eta || 'TBA'}</span>
+                  </div>
+                )}
               </div>
               
               {job.status === 'NEW' && (

@@ -9,19 +9,33 @@ generator client {
 
 model Job {
   id              String    @id @default(uuid())
-  jobNumber       String    @unique
+  jobNumber       String    @unique // HBL NO.
   status          String    @default("NEW")
   agentEmail      String
+  
+  // -- Parties --
   shipperName     String?
   consigneeName   String?
+  
+  // -- Routing & Dates --
+  pol             String?   // Port of Loading
+  pod             String?   // Port of Discharge
+  readyTime       String?
+  cutOff          String?
+  etd             String?
+  eta             String?
+  
+  // -- Cargo Details --
   commodity       String?
-  transportMode   String?   
-  loadType        String?   
+  carrier         String?   // LCL, FCL
+  volumeRaw       String?   // 2PLTS/680KGS/2.577CBM
   weightKgs       Float?
   volumeCbm       Float?
-  vesselName      String?
-  eta             DateTime?
-  etd             DateTime?
+  
+  // -- Charges --
+  podCharge       String?
+  ofps            String?   // Ocean Freight & Profit Share
+  
   emailThreadId   String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
