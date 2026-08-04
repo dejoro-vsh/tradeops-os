@@ -97,17 +97,9 @@ export default function Home() {
               </div>
               
               <div style={{ display: 'flex', gap: '8px' }}>
-                {job.status === 'NEW' && (
-                  <button onClick={() => updateStatus(job.id, 'PENDING_VESSEL')} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                    Approve (Send Emails)
-                  </button>
-                )}
-                
-                {job.status === 'PENDING_VESSEL' && (
-                  <button onClick={() => updateStatus(job.id, 'ACKNOWLEDGED')} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                    Acknowledge Vessel
-                  </button>
-                )}
+                <a href={`/jobs/${job.id}`} style={{ background: '#3b82f6', color: 'white', textDecoration: 'none', padding: '0.5rem 1.5rem', borderRadius: '4px', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                  View Details
+                </a>
 
                 <button onClick={() => deleteJob(job.id)} style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid #ef4444', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                   Delete
