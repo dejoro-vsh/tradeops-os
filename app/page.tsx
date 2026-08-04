@@ -45,6 +45,16 @@ export default function Home() {
     });
   };
 
+  const deleteJob = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this job?')) return;
+    
+    setJobs(jobs.filter(job => job.id !== id));
+    
+    await fetch(`/api/jobs/${id}`, {
+      method: 'DELETE',
+    });
+  };
+
   return (
     <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <header style={{ marginBottom: '3rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
@@ -86,17 +96,23 @@ export default function Home() {
                 )}
               </div>
               
-              {job.status === 'NEW' && (
-                <button onClick={() => updateStatus(job.id, 'PENDING_VESSEL')} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                  Approve (Send Emails)
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {job.status === 'NEW' && (
+                  <button onClick={() => updateStatus(job.id, 'PENDING_VESSEL')} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    Approve (Send Emails)
+                  </button>
+                )}
+                
+                {job.status === 'PENDING_VESSEL' && (
+                  <button onClick={() => updateStatus(job.id, 'ACKNOWLEDGED')} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    Acknowledge Vessel
+                  </button>
+                )}
+
+                <button onClick={() => deleteJob(job.id)} style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid #ef4444', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                  Delete
                 </button>
-              )}
-              
-              {job.status === 'PENDING_VESSEL' && (
-                <button onClick={() => updateStatus(job.id, 'ACKNOWLEDGED')} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                  Acknowledge Vessel
-                </button>
-              )}
+              </div>
             </div>
           ))}
         </div>
