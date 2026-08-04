@@ -50,8 +50,8 @@ export async function POST(req: Request) {
           commodity: commodity || existingJob.commodity,
           carrier: carrier || existingJob.carrier,
           volumeRaw: volumeRaw || existingJob.volumeRaw,
-          weightKgs: weightKgs || existingJob.weightKgs,
-          volumeCbm: volumeCbm || existingJob.volumeCbm,
+          weightKgs: weightKgs !== undefined ? (typeof weightKgs === 'string' ? parseFloat(weightKgs) : weightKgs) : existingJob.weightKgs,
+          volumeCbm: volumeCbm !== undefined ? (typeof volumeCbm === 'string' ? parseFloat(volumeCbm) : volumeCbm) : existingJob.volumeCbm,
           podCharge: podCharge || existingJob.podCharge,
           ofps: ofps || existingJob.ofps,
         }
@@ -74,8 +74,8 @@ export async function POST(req: Request) {
           commodity,
           carrier,
           volumeRaw,
-          weightKgs,
-          volumeCbm,
+          weightKgs: weightKgs !== undefined && weightKgs !== null ? (typeof weightKgs === 'string' ? parseFloat(weightKgs) : weightKgs) : null,
+          volumeCbm: volumeCbm !== undefined && volumeCbm !== null ? (typeof volumeCbm === 'string' ? parseFloat(volumeCbm) : volumeCbm) : null,
           podCharge,
           ofps
         }
