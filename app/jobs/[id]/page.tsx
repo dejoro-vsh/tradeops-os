@@ -94,7 +94,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
         </span>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
         <section className="glass-panel" style={{ padding: '2rem' }}>
           <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#3b82f6' }}>Routing & Dates</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
@@ -136,7 +136,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
               <p style={{ color: '#94a3b8' }}>No documents uploaded yet.</p>
             ) : (
               job.documents.map((doc) => (
-                <div key={doc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${doc.status === 'APPROVED' ? '#10b981' : '#f59e0b'}` }}>
+                <div key={doc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${doc.status === 'APPROVED' ? '#10b981' : '#f59e0b'}` }}>
                   <div>
                     <strong style={{ fontSize: '1.1rem', color: '#fff' }}>{doc.type}</strong>
                     <span style={{ marginLeft: '8px', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem' }}>v{doc.version}</span>

@@ -79,7 +79,7 @@ export default function Home() {
               <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem' }}>Waiting for n8n to send Pre-advise emails...</p>
             </div>
           ) : jobs.map(job => (
-            <div key={job.id} style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${job.status === 'NEW' ? '#3b82f6' : job.status === 'PENDING_VESSEL' ? '#f59e0b' : '#10b981'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={job.id} style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${job.status === 'NEW' ? '#3b82f6' : job.status === 'PENDING_VESSEL' ? '#f59e0b' : '#10b981'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <strong style={{ display: 'block', fontSize: '1.2rem', color: '#fff' }}>{job.jobNumber}</strong>
                 <span style={{ color: '#94a3b8', fontSize: '0.9rem', display: 'block', margin: '4px 0' }}>Agent: {job.agentEmail}</span>
