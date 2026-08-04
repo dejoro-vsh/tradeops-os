@@ -1,0 +1,28 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Job {
+  id              String    @id @default(uuid())
+  jobNumber       String    @unique
+  status          String    @default("NEW")
+  agentEmail      String
+  shipperName     String?
+  consigneeName   String?
+  commodity       String?
+  transportMode   String?   
+  loadType        String?   
+  weightKgs       Float?
+  volumeCbm       Float?
+  vesselName      String?
+  eta             DateTime?
+  etd             DateTime?
+  emailThreadId   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
