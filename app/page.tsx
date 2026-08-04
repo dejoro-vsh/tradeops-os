@@ -63,7 +63,7 @@ export default function Home() {
     <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <header style={{ marginBottom: '3rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
         <h1 style={{ fontSize: '2.5rem', margin: 0, background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          TradeOps OS
+          IFMS
         </h1>
         <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>Intelligent Freight Management System</p>
       </header>

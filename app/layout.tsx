@@ -2,8 +2,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'TradeOps OS',
-  description: 'Freight Forwarding Automation System',
+  title: 'IFMS',
+  description: 'Intelligent Freight Management System',
 };
 
 export default function RootLayout({
