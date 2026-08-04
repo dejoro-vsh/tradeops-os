@@ -36,8 +36,20 @@ model Job {
   podCharge       String?
   ofps            String?   // Ocean Freight & Profit Share
   
-  attachmentUrl   String?
   emailThreadId   String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  documents       Document[]
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  type        String   
+  version     Int      @default(1)
+  url         String
+  status      String   @default("PENDING_APPROVAL")
+  createdAt   DateTime @default(now())
 }

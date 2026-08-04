@@ -4,7 +4,8 @@ import prisma from '@/lib/prisma';
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     const job = await prisma.job.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
+      include: { documents: { orderBy: { createdAt: 'desc' } } }
     });
     if (!job) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(job);

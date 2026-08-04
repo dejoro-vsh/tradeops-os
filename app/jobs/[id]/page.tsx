@@ -4,6 +4,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+type Document = {
+  id: string;
+  type: string;
+  version: number;
+  url: string;
+  status: string;
+  createdAt: string;
+};
+
 type Job = {
   id: string;
   jobNumber: string;
@@ -24,7 +33,7 @@ type Job = {
   volumeCbm: number | null;
   podCharge: string | null;
   ofps: string | null;
-  attachmentUrl: string | null;
+  documents: Document[];
 };
 
 export default function JobDetails({ params }: { params: { id: string } }) {
@@ -32,7 +41,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
+  const fetchJob = () => {
     fetch(`/api/jobs/${params.id}`)
       .then(res => res.json())
       .then(data => {
@@ -41,6 +50,10 @@ export default function JobDetails({ params }: { params: { id: string } }) {
         }
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchJob();
   }, [params.id]);
 
   const updateStatus = async (newStatus: string) => {
@@ -52,6 +65,15 @@ export default function JobDetails({ params }: { params: { id: string } }) {
       body: JSON.stringify({ status: newStatus })
     });
     router.push('/');
+  };
+
+  const approveDocument = async (docId: string) => {
+    await fetch(`/api/documents/${docId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'APPROVED' })
+    });
+    fetchJob(); // Refresh the list
   };
 
   if (loading) return <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}><p style={{ color: '#94a3b8' }}>Loading Details...</p></main>;
@@ -66,12 +88,6 @@ export default function JobDetails({ params }: { params: { id: string } }) {
         <h1 style={{ fontSize: '2rem', margin: 0, color: '#f8fafc' }}>
           {job.jobNumber}
         </h1>
-        
-        {job.attachmentUrl && (
-          <a href={job.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid #3b82f6', padding: '0.5rem 1rem', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            📄 View Original PDF
-          </a>
-        )}
 
         <span style={{ marginLeft: 'auto', background: job.status === 'NEW' ? '#3b82f6' : job.status === 'PENDING_VESSEL' ? '#f59e0b' : '#10b981', padding: '0.5rem 1rem', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.9rem' }}>
           {job.status}
@@ -110,6 +126,37 @@ export default function JobDetails({ params }: { params: { id: string } }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
             <p style={{ margin: 0 }}><strong>POD Charge:</strong> <span style={{ color: '#94a3b8' }}>{job.podCharge || '-'}</span></p>
             <p style={{ margin: 0 }}><strong>O/F+P/S:</strong> <span style={{ color: '#94a3b8' }}>{job.ofps || '-'}</span></p>
+          </div>
+        </section>
+
+        <section className="glass-panel" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
+          <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#10b981' }}>Document Center</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+            {!job.documents || job.documents.length === 0 ? (
+              <p style={{ color: '#94a3b8' }}>No documents uploaded yet.</p>
+            ) : (
+              job.documents.map((doc) => (
+                <div key={doc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${doc.status === 'APPROVED' ? '#10b981' : '#f59e0b'}` }}>
+                  <div>
+                    <strong style={{ fontSize: '1.1rem', color: '#fff' }}>{doc.type}</strong>
+                    <span style={{ marginLeft: '8px', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem' }}>v{doc.version}</span>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+                      Status: <span style={{ color: doc.status === 'APPROVED' ? '#10b981' : '#f59e0b' }}>{doc.status}</span> | Uploaded: {new Date(doc.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <a href={doc.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid #3b82f6', padding: '0.5rem 1rem', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                      📄 View PDF
+                    </a>
+                    {doc.status === 'PENDING_APPROVAL' && (
+                      <button onClick={() => approveDocument(doc.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        Approve
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </div>
