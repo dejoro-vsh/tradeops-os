@@ -46,7 +46,11 @@ export default function Home() {
   };
 
   const deleteJob = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this job?')) return;
+    const password = prompt('Please enter the admin password (1234) to delete this job:');
+    if (password !== '1234') {
+      alert('Incorrect password. Deletion cancelled.');
+      return;
+    }
     
     setJobs(jobs.filter(job => job.id !== id));
     
