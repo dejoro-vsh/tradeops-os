@@ -24,6 +24,7 @@ type Job = {
   volumeCbm: number | null;
   podCharge: string | null;
   ofps: string | null;
+  attachmentUrl: string | null;
 };
 
 export default function JobDetails({ params }: { params: { id: string } }) {
@@ -58,13 +59,20 @@ export default function JobDetails({ params }: { params: { id: string } }) {
 
   return (
     <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+      <header style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', flexWrap: 'wrap' }}>
         <Link href="/" style={{ textDecoration: 'none', color: '#94a3b8', fontSize: '1.2rem', padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
           ← Back
         </Link>
         <h1 style={{ fontSize: '2rem', margin: 0, color: '#f8fafc' }}>
           {job.jobNumber}
         </h1>
+        
+        {job.attachmentUrl && (
+          <a href={job.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', border: '1px solid #3b82f6', padding: '0.5rem 1rem', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            📄 View Original PDF
+          </a>
+        )}
+
         <span style={{ marginLeft: 'auto', background: job.status === 'NEW' ? '#3b82f6' : job.status === 'PENDING_VESSEL' ? '#f59e0b' : '#10b981', padding: '0.5rem 1rem', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.9rem' }}>
           {job.status}
         </span>

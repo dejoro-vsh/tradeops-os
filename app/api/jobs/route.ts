@@ -54,6 +54,7 @@ export async function POST(req: Request) {
           volumeCbm: volumeCbm !== undefined ? (typeof volumeCbm === 'string' ? parseFloat(volumeCbm) : volumeCbm) : existingJob.volumeCbm,
           podCharge: podCharge || existingJob.podCharge,
           ofps: ofps || existingJob.ofps,
+          attachmentUrl: body.attachmentUrl || existingJob.attachmentUrl,
         }
       });
     } else {
@@ -77,7 +78,8 @@ export async function POST(req: Request) {
           weightKgs: weightKgs !== undefined && weightKgs !== null ? (typeof weightKgs === 'string' ? parseFloat(weightKgs) : weightKgs) : null,
           volumeCbm: volumeCbm !== undefined && volumeCbm !== null ? (typeof volumeCbm === 'string' ? parseFloat(volumeCbm) : volumeCbm) : null,
           podCharge,
-          ofps
+          ofps,
+          attachmentUrl: body.attachmentUrl || null
         }
       });
     }

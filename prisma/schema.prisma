@@ -36,6 +36,7 @@ model Job {
   podCharge       String?
   ofps            String?   // Ocean Freight & Profit Share
   
+  attachmentUrl   String?
   emailThreadId   String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
