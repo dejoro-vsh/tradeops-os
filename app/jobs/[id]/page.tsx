@@ -37,6 +37,36 @@ type Job = {
   documents: Document[];
 };
 
+const renderDynamicValue = (val: any): React.ReactNode => {
+  if (val === null || val === undefined || val === '') return '-';
+  if (Array.isArray(val)) {
+    return (
+      <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', color: '#94a3b8' }}>
+        {val.map((item, idx) => (
+          <li key={idx}>{renderDynamicValue(item)}</li>
+        ))}
+      </ul>
+    );
+  }
+  if (typeof val === 'object') {
+    return (
+      <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {Object.entries(val).map(([k, v]) => (
+          <div key={k} style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 12px', borderRadius: '6px', fontSize: '0.9rem' }}>
+            <strong style={{ color: '#cbd5e1', textTransform: 'capitalize', display: 'block', marginBottom: '4px' }}>
+              {k.replace(/([A-Z])/g, ' $1').trim()}:
+            </strong>
+            <span style={{ color: '#94a3b8', display: 'block', wordBreak: 'break-word' }}>
+              {renderDynamicValue(v)}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return <span style={{ wordBreak: 'break-word', color: '#94a3b8', whiteSpace: 'pre-wrap' }}>{String(val)}</span>;
+};
+
 export default function JobDetails({ params }: { params: { id: string } }) {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -133,12 +163,14 @@ export default function JobDetails({ params }: { params: { id: string } }) {
         {job.dynamicData && Object.keys(job.dynamicData).length > 0 && (
           <section className="glass-panel" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
             <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#c084fc' }}>Additional Information</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
               {Object.entries(job.dynamicData).map(([key, value]) => (
-                <p key={key} style={{ margin: 0, padding: '0.8rem', background: 'rgba(0,0,0,0.1)', borderRadius: '6px' }}>
-                  <strong style={{ color: '#fff', textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1').trim()}:</strong><br/>
-                  <span style={{ color: '#94a3b8' }}>{typeof value === 'object' ? JSON.stringify(value) : String(value) || '-'}</span>
-                </p>
+                <div key={key} style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: '3px solid #c084fc' }}>
+                  <strong style={{ color: '#fff', textTransform: 'capitalize', display: 'block', marginBottom: '8px', fontSize: '1.1rem' }}>
+                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                  </strong>
+                  {renderDynamicValue(value)}
+                </div>
               ))}
             </div>
           </section>
