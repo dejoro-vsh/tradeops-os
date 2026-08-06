@@ -36,6 +36,9 @@ model Job {
   podCharge       String?
   ofps            String?   // Ocean Freight & Profit Share
   
+  // -- Dynamic Data --
+  dynamicData     Json?
+  
   emailThreadId   String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

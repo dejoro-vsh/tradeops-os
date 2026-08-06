@@ -33,6 +33,7 @@ type Job = {
   volumeCbm: number | null;
   podCharge: string | null;
   ofps: string | null;
+  dynamicData: any;
   documents: Document[];
 };
 
@@ -128,6 +129,20 @@ export default function JobDetails({ params }: { params: { id: string } }) {
             <p style={{ margin: 0 }}><strong>O/F+P/S:</strong> <span style={{ color: '#94a3b8' }}>{job.ofps || '-'}</span></p>
           </div>
         </section>
+
+        {job.dynamicData && Object.keys(job.dynamicData).length > 0 && (
+          <section className="glass-panel" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
+            <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#c084fc' }}>Additional Information</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+              {Object.entries(job.dynamicData).map(([key, value]) => (
+                <p key={key} style={{ margin: 0, padding: '0.8rem', background: 'rgba(0,0,0,0.1)', borderRadius: '6px' }}>
+                  <strong style={{ color: '#fff', textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1').trim()}:</strong><br/>
+                  <span style={{ color: '#94a3b8' }}>{typeof value === 'object' ? JSON.stringify(value) : String(value) || '-'}</span>
+                </p>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="glass-panel" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
           <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#10b981' }}>Document Center</h2>
