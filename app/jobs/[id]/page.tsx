@@ -126,7 +126,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
           style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1 }}
         />
       ) : (
-        <span style={{ color: '#94a3b8' }}>{job[fieldKey] !== null && job[fieldKey] !== '' ? String(job[fieldKey]) : '-'}</span>
+        <span style={{ color: '#94a3b8' }}>{job![fieldKey] !== null && job![fieldKey] !== '' ? String(job![fieldKey]) : '-'}</span>
       )}
     </div>
   );
