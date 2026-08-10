@@ -133,7 +133,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
               const val = type === 'number' ? (e.target.value ? Number(e.target.value) : null) : e.target.value;
               setEditForm({...editForm, [fieldKey]: val});
             }}
-            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1, colorScheme: 'dark' }}
+            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1, colorScheme: 'dark', minWidth: 0, width: '100%' }}
           />
         ) : (
           <span style={{ color: '#94a3b8' }}>{job![fieldKey] !== null && job![fieldKey] !== '' ? String(job![fieldKey]) : '-'}</span>
