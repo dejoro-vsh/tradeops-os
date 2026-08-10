@@ -70,6 +70,8 @@ const renderDynamicValue = (val: any): React.ReactNode => {
 export default function JobDetails({ params }: { params: { id: string } }) {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Job>>({});
   const router = useRouter();
 
   const fetchJob = () => {
@@ -78,6 +80,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
       .then(data => {
         if (data && !data.error) {
           setJob(data);
+          setEditForm(data);
         }
         setLoading(false);
       });
@@ -98,6 +101,36 @@ export default function JobDetails({ params }: { params: { id: string } }) {
     router.push('/');
   };
 
+  const handleSaveEdit = async () => {
+    if (!job) return;
+    setJob({ ...job, ...editForm } as Job);
+    setIsEditing(false);
+    await fetch(`/api/jobs/${job.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editForm)
+    });
+  };
+
+  const Field = ({ label, fieldKey, type = 'text' }: { label: string, fieldKey: keyof Job, type?: string }) => (
+    <div style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <strong style={{ minWidth: '110px' }}>{label}:</strong>
+      {isEditing ? (
+        <input 
+          type={type} 
+          value={(editForm[fieldKey] as any) || ''} 
+          onChange={(e) => {
+            const val = type === 'number' ? (e.target.value ? Number(e.target.value) : null) : e.target.value;
+            setEditForm({...editForm, [fieldKey]: val});
+          }}
+          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1 }}
+        />
+      ) : (
+        <span style={{ color: '#94a3b8' }}>{job[fieldKey] !== null && job[fieldKey] !== '' ? String(job[fieldKey]) : '-'}</span>
+      )}
+    </div>
+  );
+
   const approveDocument = async (docId: string) => {
     await fetch(`/api/documents/${docId}`, {
       method: 'PATCH',
@@ -116,8 +149,16 @@ export default function JobDetails({ params }: { params: { id: string } }) {
         <Link href="/" style={{ textDecoration: 'none', color: '#94a3b8', fontSize: '1.2rem', padding: '0.5rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
           ← Back
         </Link>
-        <h1 style={{ fontSize: '2rem', margin: 0, color: '#f8fafc' }}>
+        <h1 style={{ fontSize: '2rem', margin: 0, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {job.jobNumber}
+          {!isEditing ? (
+            <button onClick={() => setIsEditing(true)} style={{ background: '#475569', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem' }}>✎ Edit</button>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={handleSaveEdit} style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem' }}>Save</button>
+              <button onClick={() => { setIsEditing(false); setEditForm(job); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem' }}>Cancel</button>
+            </div>
+          )}
         </h1>
 
         <span style={{ marginLeft: 'auto', background: job.status === 'NEW' ? '#3b82f6' : job.status === 'PENDING_VESSEL' ? '#f59e0b' : '#10b981', padding: '0.5rem 1rem', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.9rem' }}>
@@ -129,34 +170,34 @@ export default function JobDetails({ params }: { params: { id: string } }) {
         <section className="glass-panel" style={{ padding: '2rem' }}>
           <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#3b82f6' }}>Routing & Dates</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
-            <p style={{ margin: 0 }}><strong>POL:</strong> <span style={{ color: '#94a3b8' }}>{job.pol || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>POD:</strong> <span style={{ color: '#94a3b8' }}>{job.pod || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>ETD:</strong> <span style={{ color: '#94a3b8' }}>{job.etd || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>ETA:</strong> <span style={{ color: '#94a3b8' }}>{job.eta || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>Ready Time:</strong> <span style={{ color: '#94a3b8' }}>{job.readyTime || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>Cut Off:</strong> <span style={{ color: '#94a3b8' }}>{job.cutOff || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>Carrier:</strong> <span style={{ color: '#94a3b8' }}>{job.carrier || '-'}</span></p>
+            <Field label="POL" fieldKey="pol" />
+            <Field label="POD" fieldKey="pod" />
+            <Field label="ETD" fieldKey="etd" />
+            <Field label="ETA" fieldKey="eta" />
+            <Field label="Ready Time" fieldKey="readyTime" />
+            <Field label="Cut Off" fieldKey="cutOff" />
+            <Field label="Carrier" fieldKey="carrier" />
           </div>
         </section>
 
         <section className="glass-panel" style={{ padding: '2rem' }}>
           <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#3b82f6' }}>Cargo & Parties</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
-            <p style={{ margin: 0 }}><strong>Shipper:</strong> <span style={{ color: '#94a3b8' }}>{job.shipperName || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>Consignee:</strong> <span style={{ color: '#94a3b8' }}>{job.consigneeName || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>Commodity:</strong> <span style={{ color: '#94a3b8' }}>{job.commodity || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>Volume:</strong> <span style={{ color: '#94a3b8' }}>{job.volumeRaw || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>Weight:</strong> <span style={{ color: '#94a3b8' }}>{job.weightKgs ? `${job.weightKgs} KGS` : '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>CBM:</strong> <span style={{ color: '#94a3b8' }}>{job.volumeCbm || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>Agent Email:</strong> <span style={{ color: '#94a3b8' }}>{job.agentEmail}</span></p>
+            <Field label="Shipper" fieldKey="shipperName" />
+            <Field label="Consignee" fieldKey="consigneeName" />
+            <Field label="Commodity" fieldKey="commodity" />
+            <Field label="Volume" fieldKey="volumeRaw" />
+            <Field label="Weight (KGS)" fieldKey="weightKgs" type="number" />
+            <Field label="CBM" fieldKey="volumeCbm" type="number" />
+            <Field label="Agent Email" fieldKey="agentEmail" />
           </div>
         </section>
         
         <section className="glass-panel" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
           <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#f59e0b' }}>Charges & Costing</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
-            <p style={{ margin: 0 }}><strong>POD Charge:</strong> <span style={{ color: '#94a3b8' }}>{job.podCharge || '-'}</span></p>
-            <p style={{ margin: 0 }}><strong>O/F+P/S:</strong> <span style={{ color: '#94a3b8' }}>{job.ofps || '-'}</span></p>
+            <Field label="POD Charge" fieldKey="podCharge" />
+            <Field label="O/F+P/S" fieldKey="ofps" />
           </div>
         </section>
 

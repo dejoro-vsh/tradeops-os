@@ -17,11 +17,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     const body = await req.json();
-    const { status } = body;
+    const { id, documents, createdAt, updatedAt, ...updateData } = body;
     
     const job = await prisma.job.update({
       where: { id: params.id },
-      data: { status }
+      data: updateData
     });
     
     // TODO: Later we will call the n8n webhook URL here to trigger the outgoing email!
