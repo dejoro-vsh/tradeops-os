@@ -112,24 +112,35 @@ export default function JobDetails({ params }: { params: { id: string } }) {
     });
   };
 
-  const Field = ({ label, fieldKey, type = 'text' }: { label: string, fieldKey: keyof Job, type?: string }) => (
-    <div style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <strong style={{ minWidth: '110px' }}>{label}:</strong>
-      {isEditing ? (
-        <input 
-          type={type} 
-          value={(editForm[fieldKey] as any) || ''} 
-          onChange={(e) => {
-            const val = type === 'number' ? (e.target.value ? Number(e.target.value) : null) : e.target.value;
-            setEditForm({...editForm, [fieldKey]: val});
-          }}
-          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1 }}
-        />
-      ) : (
-        <span style={{ color: '#94a3b8' }}>{job![fieldKey] !== null && job![fieldKey] !== '' ? String(job![fieldKey]) : '-'}</span>
-      )}
-    </div>
-  );
+  const Field = ({ label, fieldKey, type = 'text' }: { label: string, fieldKey: keyof Job, type?: string }) => {
+    let inputValue = (editForm[fieldKey] as any) || '';
+    if (type === 'datetime-local' && inputValue) {
+      const d = new Date(inputValue);
+      if (!isNaN(d.getTime())) {
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        inputValue = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+    }
+
+    return (
+      <div style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <strong style={{ minWidth: '110px' }}>{label}:</strong>
+        {isEditing ? (
+          <input 
+            type={type} 
+            value={inputValue} 
+            onChange={(e) => {
+              const val = type === 'number' ? (e.target.value ? Number(e.target.value) : null) : e.target.value;
+              setEditForm({...editForm, [fieldKey]: val});
+            }}
+            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1, colorScheme: 'dark' }}
+          />
+        ) : (
+          <span style={{ color: '#94a3b8' }}>{job![fieldKey] !== null && job![fieldKey] !== '' ? String(job![fieldKey]) : '-'}</span>
+        )}
+      </div>
+    );
+  };
 
   const approveDocument = async (docId: string) => {
     await fetch(`/api/documents/${docId}`, {
@@ -172,10 +183,10 @@ export default function JobDetails({ params }: { params: { id: string } }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
             <Field label="POL" fieldKey="pol" />
             <Field label="POD" fieldKey="pod" />
-            <Field label="ETD" fieldKey="etd" />
-            <Field label="ETA" fieldKey="eta" />
-            <Field label="Ready Time" fieldKey="readyTime" />
-            <Field label="Cut Off" fieldKey="cutOff" />
+            <Field label="ETD" fieldKey="etd" type="datetime-local" />
+            <Field label="ETA" fieldKey="eta" type="datetime-local" />
+            <Field label="Ready Time" fieldKey="readyTime" type="datetime-local" />
+            <Field label="Cut Off" fieldKey="cutOff" type="datetime-local" />
             <Field label="Carrier" fieldKey="carrier" />
           </div>
         </section>
