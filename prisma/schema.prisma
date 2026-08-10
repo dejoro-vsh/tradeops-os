@@ -38,6 +38,7 @@ model Job {
   
   // -- Dynamic Data --
   dynamicData     Json?
+  note            String?
   
   emailThreadId   String?
   createdAt       DateTime  @default(now())

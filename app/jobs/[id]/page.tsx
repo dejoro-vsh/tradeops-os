@@ -33,6 +33,7 @@ type Job = {
   volumeCbm: number | null;
   podCharge: string | null;
   ofps: string | null;
+  note: string | null;
   dynamicData: any;
   documents: Document[];
 };
@@ -123,20 +124,28 @@ export default function JobDetails({ params }: { params: { id: string } }) {
     }
 
     return (
-      <div style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <strong style={{ minWidth: '110px' }}>{label}:</strong>
+      <div style={{ margin: 0, display: 'flex', alignItems: type === 'textarea' ? 'flex-start' : 'center', gap: '8px' }}>
+        <strong style={{ minWidth: '110px', marginTop: type === 'textarea' ? '8px' : '0' }}>{label}:</strong>
         {isEditing ? (
-          <input 
-            type={type} 
-            value={inputValue} 
-            onChange={(e) => {
-              const val = type === 'number' ? (e.target.value ? Number(e.target.value) : null) : e.target.value;
-              setEditForm({...editForm, [fieldKey]: val});
-            }}
-            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1, colorScheme: 'dark', minWidth: 0, width: '100%' }}
-          />
+          type === 'textarea' ? (
+            <textarea 
+              value={inputValue} 
+              onChange={(e) => setEditForm({...editForm, [fieldKey]: e.target.value})}
+              style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1, minWidth: 0, width: '100%', minHeight: '80px', fontFamily: 'inherit' }}
+            />
+          ) : (
+            <input 
+              type={type} 
+              value={inputValue} 
+              onChange={(e) => {
+                const val = type === 'number' ? (e.target.value ? Number(e.target.value) : null) : e.target.value;
+                setEditForm({...editForm, [fieldKey]: val});
+              }}
+              style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: 'white', flex: 1, colorScheme: 'dark', minWidth: 0, width: '100%' }}
+            />
+          )
         ) : (
-          <span style={{ color: '#94a3b8' }}>{job![fieldKey] !== null && job![fieldKey] !== '' ? String(job![fieldKey]) : '-'}</span>
+          <span style={{ color: '#94a3b8', whiteSpace: type === 'textarea' ? 'pre-wrap' : 'normal' }}>{job![fieldKey] !== null && job![fieldKey] !== '' ? String(job![fieldKey]) : '-'}</span>
         )}
       </div>
     );
@@ -227,6 +236,13 @@ export default function JobDetails({ params }: { params: { id: string } }) {
             </div>
           </section>
         )}
+
+        <section className="glass-panel" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
+          <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#ec4899' }}>Notes & Remarks</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
+            <Field label="Agent Note" fieldKey="note" type="textarea" />
+          </div>
+        </section>
 
         <section className="glass-panel" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
           <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#10b981' }}>Document Center</h2>
