@@ -1,0 +1,86 @@
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+const FIELD_LABELS: Record<string, string> = {
+  pol: 'POL',
+  pod: 'POD',
+  etd: 'ETD',
+  eta: 'ETA',
+  readyTime: 'Ready Time',
+  cutOff: 'Cut Off',
+  carrier: 'Carrier',
+  shipperName: 'Shipper',
+  consigneeName: 'Consignee',
+  commodity: 'Commodity',
+  volumeRaw: 'Volume',
+  weightKgs: 'Weight (KGS)',
+  volumeCbm: 'CBM',
+  podCharge: 'POD Charge',
+  ofps: 'O/F+P/S',
+  note: 'Agent Note',
+};
+
+export async function POST(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const body = await request.json();
+    const { selectedFields } = body;
+
+    const job = await prisma.job.findUnique({
+      where: { id: params.id }
+    });
+
+    if (!job) {
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    }
+
+    // Build the message body based on selected fields
+    let messageBody = "Please review the confirmed details for this shipment:\n\n";
+    
+    for (const field of selectedFields) {
+      const label = FIELD_LABELS[field] || field;
+      const value = (job as any)[field];
+      if (value !== null && value !== undefined && value !== '') {
+        messageBody += `${label}: ${value}\n`;
+      }
+    }
+
+    // Update job status to PENDING_VESSEL if it was NEW
+    if (job.status === 'NEW') {
+      await prisma.job.update({
+        where: { id: params.id },
+        data: { status: 'PENDING_VESSEL' }
+      });
+    }
+
+    // Call n8n Webhook
+    const webhookUrl = process.env.N8N_WEBHOOK_URL;
+    if (webhookUrl) {
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobNumber: job.jobNumber,
+            agentEmail: job.agentEmail,
+            recipientEmail: job.recipientEmail,
+            emailThreadId: job.emailThreadId,
+            messageBody: messageBody
+          })
+        });
+        console.log('Successfully called n8n webhook for job:', job.jobNumber);
+      } catch (webhookError) {
+        console.error('Error calling n8n webhook:', webhookError);
+        // We don't fail the request here, just log the error
+      }
+    } else {
+      console.warn('N8N_WEBHOOK_URL is not set. Email will not be sent via n8n.');
+    }
+
+    return NextResponse.json({ success: true, message: 'Email sent and status updated' });
+  } catch (error: any) {
+    console.error('Error in send-email:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

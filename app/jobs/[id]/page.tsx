@@ -32,11 +32,33 @@ type Job = {
   weightKgs: number | null;
   volumeCbm: number | null;
   podCharge: string | null;
+  podCharge: string | null;
   ofps: string | null;
   note: string | null;
   dynamicData: any;
+  emailThreadId: string | null;
+  recipientEmail: string | null;
   documents: Document[];
 };
+
+const ALL_FIELDS = [
+  { key: 'pol', label: 'POL' },
+  { key: 'pod', label: 'POD' },
+  { key: 'etd', label: 'ETD' },
+  { key: 'eta', label: 'ETA' },
+  { key: 'readyTime', label: 'Ready Time' },
+  { key: 'cutOff', label: 'Cut Off' },
+  { key: 'carrier', label: 'Carrier' },
+  { key: 'shipperName', label: 'Shipper' },
+  { key: 'consigneeName', label: 'Consignee' },
+  { key: 'commodity', label: 'Commodity' },
+  { key: 'volumeRaw', label: 'Volume' },
+  { key: 'weightKgs', label: 'Weight (KGS)' },
+  { key: 'volumeCbm', label: 'CBM' },
+  { key: 'podCharge', label: 'POD Charge' },
+  { key: 'ofps', label: 'O/F+P/S' },
+  { key: 'note', label: 'Agent Note' },
+];
 
 const renderDynamicValue = (val: any): React.ReactNode => {
   if (val === null || val === undefined || val === '') return '-';
@@ -73,6 +95,8 @@ export default function JobDetails({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Job>>({});
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const router = useRouter();
 
   const fetchJob = () => {
@@ -111,6 +135,31 @@ export default function JobDetails({ params }: { params: { id: string } }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editForm)
     });
+  };
+
+  const openEmailModal = () => {
+    if (!job) return;
+    const nonEmptyFields = ALL_FIELDS
+      .filter(f => (job as any)[f.key] !== null && (job as any)[f.key] !== undefined && (job as any)[f.key] !== '')
+      .map(f => f.key);
+    setSelectedFields(nonEmptyFields);
+    setIsEmailModalOpen(true);
+  };
+
+  const sendEmail = async () => {
+    if (!job) return;
+    setIsEmailModalOpen(false);
+    
+    if (job.status === 'NEW') {
+      setJob({ ...job, status: 'PENDING_VESSEL' });
+    }
+    
+    await fetch(`/api/jobs/${job.id}/send-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selectedFields })
+    });
+    router.push('/');
   };
 
   const Field = ({ label, fieldKey, type = 'text' }: { label: string, fieldKey: keyof Job, type?: string }) => {
@@ -278,7 +327,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
 
       <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
         {job.status === 'NEW' && (
-          <button onClick={() => updateStatus('PENDING_VESSEL')} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.8rem 2rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}>
+          <button onClick={openEmailModal} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.8rem 2rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}>
             Approve Pre-advise & Send Emails
           </button>
         )}
@@ -289,6 +338,45 @@ export default function JobDetails({ params }: { params: { id: string } }) {
           </button>
         )}
       </div>
+
+      {isEmailModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div className="glass-panel" style={{ padding: '2rem', maxWidth: '600px', width: '100%', background: '#1e293b', border: '1px solid #475569', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '0.5rem', color: '#3b82f6' }}>Select Information to Send</h2>
+            <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              Check the boxes for the fields you want to include in the confirmation email to the agent. All fields are checked by default.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', maxHeight: '55vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
+              {ALL_FIELDS.filter(f => (job as any)[f.key] !== null && (job as any)[f.key] !== undefined && (job as any)[f.key] !== '').map(f => (
+                <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedFields.includes(f.key)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedFields([...selectedFields, f.key]);
+                      } else {
+                        setSelectedFields(selectedFields.filter(k => k !== f.key));
+                      }
+                    }}
+                    style={{ width: '1.2rem', height: '1.2rem', accentColor: '#3b82f6', cursor: 'pointer' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <strong style={{ color: '#e2e8f0', fontSize: '0.9rem' }}>{f.label}</strong>
+                    <span style={{ color: '#94a3b8', fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
+                      {String((job as any)[f.key])}
+                    </span>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
+              <button onClick={() => setIsEmailModalOpen(false)} style={{ background: '#475569', color: 'white', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem' }}>Cancel</button>
+              <button onClick={sendEmail} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.6rem 1.5rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}>Confirm & Send</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

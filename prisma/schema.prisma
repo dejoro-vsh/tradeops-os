@@ -12,6 +12,7 @@ model Job {
   jobNumber       String    @unique // HBL NO.
   status          String    @default("NEW")
   agentEmail      String
+  recipientEmail  String?
   
   // -- Parties --
   shipperName     String?
