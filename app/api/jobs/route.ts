@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       readyTime, cutOff, etd, eta, 
       commodity, carrier, volumeRaw, 
       weightKgs, volumeCbm, podCharge, ofps,
-      dynamicData, recipientEmail
+      dynamicData, recipientEmail, note
     } = body;
 
     if (!jobNumber) {
@@ -57,6 +57,7 @@ export async function POST(req: Request) {
           ofps: ofps || existingJob.ofps,
           dynamicData: dynamicData !== undefined ? dynamicData : existingJob.dynamicData,
           recipientEmail: recipientEmail || existingJob.recipientEmail,
+          note: note !== undefined ? note : existingJob.note,
         }
       });
     } else {
@@ -82,7 +83,8 @@ export async function POST(req: Request) {
           podCharge,
           ofps,
           dynamicData,
-          recipientEmail
+          recipientEmail,
+          note
         }
       });
     }
