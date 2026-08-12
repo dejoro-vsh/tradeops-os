@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       readyTime, cutOff, etd, eta, 
       commodity, carrier, volumeRaw, 
       weightKgs, volumeCbm, podCharge, ofps,
-      dynamicData
+      dynamicData, recipientEmail
     } = body;
 
     if (!jobNumber) {
@@ -56,6 +56,7 @@ export async function POST(req: Request) {
           podCharge: podCharge || existingJob.podCharge,
           ofps: ofps || existingJob.ofps,
           dynamicData: dynamicData !== undefined ? dynamicData : existingJob.dynamicData,
+          recipientEmail: recipientEmail || existingJob.recipientEmail,
         }
       });
     } else {
@@ -80,7 +81,8 @@ export async function POST(req: Request) {
           volumeCbm: volumeCbm !== undefined && volumeCbm !== null ? (typeof volumeCbm === 'string' ? parseFloat(volumeCbm) : volumeCbm) : null,
           podCharge,
           ofps,
-          dynamicData
+          dynamicData,
+          recipientEmail
         }
       });
     }
