@@ -32,7 +32,6 @@ type Job = {
   weightKgs: number | null;
   volumeCbm: number | null;
   podCharge: string | null;
-  podCharge: string | null;
   ofps: string | null;
   note: string | null;
   dynamicData: any;
