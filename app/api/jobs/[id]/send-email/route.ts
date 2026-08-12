@@ -47,8 +47,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
       }
       
       let value = (job as any)[field];
-      // Check in dynamicData if not a standard field
-      if (value === undefined && job.dynamicData && typeof job.dynamicData === 'object') {
+      // Check in dynamicData if not a standard field or if standard field is empty (null)
+      if ((value === null || value === undefined) && job.dynamicData && typeof job.dynamicData === 'object') {
         value = (job.dynamicData as any)[field];
       }
       

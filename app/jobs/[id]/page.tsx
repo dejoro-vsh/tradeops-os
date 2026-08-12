@@ -166,7 +166,10 @@ export default function JobDetails({ params }: { params: { id: string } }) {
     // Filter out empty fields
     const nonEmptyFields = combinedFields
       .filter(f => {
-        const val = (job as any)[f.key] !== undefined ? (job as any)[f.key] : (job.dynamicData as any)?.[f.key];
+        let val = (job as any)[f.key];
+        if ((val === null || val === undefined) && job.dynamicData) {
+          val = (job.dynamicData as any)[f.key];
+        }
         return val !== null && val !== undefined && val !== '';
       })
       .map(f => f.key);
@@ -437,7 +440,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', maxHeight: '55vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
               {((window as any).__ACTIVE_MODAL_FIELDS || []).map((f: any) => {
                 let val = (job as any)[f.key];
-                if (val === undefined && job.dynamicData) {
+                if ((val === null || val === undefined) && job.dynamicData) {
                   val = (job.dynamicData as any)[f.key];
                 }
                 const displayVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
