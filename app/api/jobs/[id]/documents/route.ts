@@ -7,12 +7,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const body = await req.json();
     const { documents, extractedData, sourceDocType } = body;
 
-    // Find the job either by UUID or jobNumber
+    // Find the job either by UUID, jobNumber, or emailThreadId
     const job = await prisma.job.findFirst({
       where: {
         OR: [
           { id: jobId },
-          { jobNumber: jobId }
+          { jobNumber: jobId },
+          { emailThreadId: jobId }
         ]
       }
     });
