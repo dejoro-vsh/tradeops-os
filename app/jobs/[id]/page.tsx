@@ -337,6 +337,12 @@ export default function JobDetails({ params }: { params: { id: string } }) {
             Acknowledge Vessel Info
           </button>
         )}
+
+        {job.status !== 'NEW' && (
+          <button onClick={() => updateStatus('NEW')} style={{ background: '#64748b', color: 'white', border: 'none', padding: '0.8rem 2rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}>
+            [Test] Reset to NEW
+          </button>
+        )}
       </div>
 
       {isEmailModalOpen && (
