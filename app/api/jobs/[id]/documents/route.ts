@@ -37,52 +37,62 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     // 2. Check Discrepancies and Update Job
-    if (extractedData && typeof extractedData === 'object') {
-      const jobUpdateData: any = {};
+    // extractions is expected to be an array of objects: { extractedData: {...}, sourceDocType: "..." }
+    if (body.extractions && Array.isArray(body.extractions)) {
+      let currentJobState = { ...job };
       const discrepanciesToCreate: any[] = [];
-      const dynamicDataUpdate: any = typeof job.dynamicData === 'object' && job.dynamicData !== null ? { ...job.dynamicData } : {};
+      const dynamicDataUpdate: any = typeof currentJobState.dynamicData === 'object' && currentJobState.dynamicData !== null ? { ...currentJobState.dynamicData } : {};
+      const jobUpdateData: any = {};
 
-      for (const [key, newValue] of Object.entries(extractedData)) {
-        if (newValue === null || newValue === undefined || newValue === '') continue;
+      for (const extraction of body.extractions) {
+        const { extractedData, sourceDocType } = extraction;
+        if (!extractedData || typeof extractedData !== 'object') continue;
 
-        let oldValue: any = undefined;
-        let isStandardField = false;
+        for (const [key, newValue] of Object.entries(extractedData)) {
+          if (newValue === null || newValue === undefined || newValue === '') continue;
 
-        // Check if it's a standard field on the Job model
-        if (key in job) {
-          oldValue = (job as any)[key];
-          isStandardField = true;
-        } else if (job.dynamicData && typeof job.dynamicData === 'object') {
-          // Check in dynamicData
-          oldValue = (job.dynamicData as any)[key];
-        }
+          let oldValue: any = undefined;
+          let isStandardField = false;
 
-        // Convert values to string for easy comparison
-        const oldStr = oldValue !== null && oldValue !== undefined ? String(oldValue).trim() : '';
-        const newStr = String(newValue).trim();
-
-        if (oldStr === '') {
-          // If empty in DB, auto-fill it
-          if (isStandardField) {
-            // Need to handle type conversion for standard fields if necessary (e.g. weightKgs -> float)
-            if (key === 'weightKgs' || key === 'volumeCbm') {
-               jobUpdateData[key] = parseFloat(newStr);
-            } else {
-               jobUpdateData[key] = newStr;
-            }
-          } else {
-            dynamicDataUpdate[key] = newStr;
+          // Check if it's a standard field on the Job model
+          if (key in currentJobState) {
+            oldValue = (currentJobState as any)[key];
+            isStandardField = true;
+          } else if (dynamicDataUpdate[key] !== undefined) {
+            oldValue = dynamicDataUpdate[key];
+          } else if (currentJobState.dynamicData && typeof currentJobState.dynamicData === 'object') {
+            oldValue = (currentJobState.dynamicData as any)[key];
           }
-        } else if (oldStr !== newStr) {
-          // If different, create a discrepancy alert
-          discrepanciesToCreate.push({
-            jobId: job.id,
-            field: key,
-            oldValue: oldStr,
-            newValue: newStr,
-            sourceDocType: sourceDocType || 'AI Extraction',
-            status: 'UNRESOLVED'
-          });
+
+          // Convert values to string for easy comparison
+          const oldStr = oldValue !== null && oldValue !== undefined ? String(oldValue).trim() : '';
+          const newStr = String(newValue).trim();
+
+          if (oldStr === '') {
+            // If empty in DB, auto-fill it and update currentJobState so subsequent files compare against this new value
+            if (isStandardField) {
+              if (key === 'weightKgs' || key === 'volumeCbm') {
+                 const numVal = parseFloat(newStr);
+                 jobUpdateData[key] = numVal;
+                 (currentJobState as any)[key] = numVal;
+              } else {
+                 jobUpdateData[key] = newStr;
+                 (currentJobState as any)[key] = newStr;
+              }
+            } else {
+              dynamicDataUpdate[key] = newStr;
+            }
+          } else if (oldStr !== newStr) {
+            // If different from current state, create a discrepancy alert
+            discrepanciesToCreate.push({
+              jobId: job.id,
+              field: key,
+              oldValue: oldStr,
+              newValue: newStr,
+              sourceDocType: sourceDocType || 'AI Extraction',
+              status: 'UNRESOLVED'
+            });
+          }
         }
       }
 
