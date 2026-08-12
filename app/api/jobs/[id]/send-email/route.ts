@@ -35,21 +35,16 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    // Build the message body based on selected fields (HTML format)
-    let messageBody = "<p>Please review the confirmed details for this shipment:</p><ul style='list-style-type: none; padding-left: 0;'>";
+    // Build the message body based on selected fields (Plain Text format)
+    let messageBody = "Please review the confirmed details for this shipment:\n\n";
     
     for (const field of selectedFields) {
       const label = FIELD_LABELS[field] || field;
-      let value = (job as any)[field];
+      const value = (job as any)[field];
       if (value !== null && value !== undefined && value !== '') {
-        // If the value is a string with newlines (like a Note), replace them with <br>
-        if (typeof value === 'string') {
-          value = value.replace(/\n/g, '<br>');
-        }
-        messageBody += `<li style='margin-bottom: 8px;'><strong>${label}:</strong> ${value}</li>`;
+        messageBody += `• ${label}: ${value}\n`;
       }
     }
-    messageBody += "</ul>";
 
     // Update job status to PENDING_VESSEL if it was NEW
     if (job.status === 'NEW') {
