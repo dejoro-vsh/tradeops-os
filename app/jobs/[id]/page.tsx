@@ -149,9 +149,31 @@ export default function JobDetails({ params }: { params: { id: string } }) {
 
   const openEmailModal = () => {
     if (!job) return;
-    const nonEmptyFields = ALL_FIELDS
-      .filter(f => (job as any)[f.key] !== null && (job as any)[f.key] !== undefined && (job as any)[f.key] !== '')
+    
+    // Build combined fields (Standard + Dynamic)
+    const combinedFields = [...ALL_FIELDS];
+    if (job.dynamicData && typeof job.dynamicData === 'object') {
+      Object.keys(job.dynamicData).forEach(k => {
+        if (!combinedFields.find(f => f.key === k)) {
+          combinedFields.push({
+            key: k,
+            label: k.replace(/([A-Z])/g, ' $1').trim().replace(/^\w/, c => c.toUpperCase())
+          });
+        }
+      });
+    }
+    
+    // Filter out empty fields
+    const nonEmptyFields = combinedFields
+      .filter(f => {
+        const val = (job as any)[f.key] !== undefined ? (job as any)[f.key] : (job.dynamicData as any)?.[f.key];
+        return val !== null && val !== undefined && val !== '';
+      })
       .map(f => f.key);
+      
+    // Store the active fields so the modal can render them (even dynamic ones)
+    (window as any).__ACTIVE_MODAL_FIELDS = combinedFields.filter(f => nonEmptyFields.includes(f.key));
+      
     setSelectedFields(nonEmptyFields);
     setIsEmailModalOpen(true);
   };
@@ -413,28 +435,36 @@ export default function JobDetails({ params }: { params: { id: string } }) {
               Check the boxes for the fields you want to include in the confirmation email to the agent. All fields are checked by default.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', maxHeight: '55vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
-              {ALL_FIELDS.filter(f => (job as any)[f.key] !== null && (job as any)[f.key] !== undefined && (job as any)[f.key] !== '').map(f => (
-                <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedFields.includes(f.key)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedFields([...selectedFields, f.key]);
-                      } else {
-                        setSelectedFields(selectedFields.filter(k => k !== f.key));
-                      }
-                    }}
-                    style={{ width: '1.2rem', height: '1.2rem', accentColor: '#3b82f6', cursor: 'pointer' }}
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <strong style={{ color: '#e2e8f0', fontSize: '0.9rem' }}>{f.label}</strong>
-                    <span style={{ color: '#94a3b8', fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
-                      {String((job as any)[f.key])}
-                    </span>
-                  </div>
-                </label>
-              ))}
+              {((window as any).__ACTIVE_MODAL_FIELDS || []).map((f: any) => {
+                let val = (job as any)[f.key];
+                if (val === undefined && job.dynamicData) {
+                  val = (job.dynamicData as any)[f.key];
+                }
+                const displayVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                
+                return (
+                  <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedFields.includes(f.key)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedFields([...selectedFields, f.key]);
+                        } else {
+                          setSelectedFields(selectedFields.filter(k => k !== f.key));
+                        }
+                      }}
+                      style={{ width: '1.2rem', height: '1.2rem', accentColor: '#3b82f6', cursor: 'pointer' }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <strong style={{ color: '#e2e8f0', fontSize: '0.9rem' }}>{f.label}</strong>
+                      <span style={{ color: '#94a3b8', fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
+                        {displayVal}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
               <button onClick={() => setIsEmailModalOpen(false)} style={{ background: '#475569', color: 'white', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem' }}>Cancel</button>

@@ -39,10 +39,26 @@ export async function POST(request: Request, { params }: { params: { id: string 
     let messageBody = "Please review the confirmed details for this shipment:\n\n";
     
     for (const field of selectedFields) {
-      const label = FIELD_LABELS[field] || field;
-      const value = (job as any)[field];
+      let label = FIELD_LABELS[field];
+      if (!label) {
+        // Fallback for dynamic fields: convert camelCase to Title Case
+        label = field.replace(/([A-Z])/g, ' $1').trim();
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+      
+      let value = (job as any)[field];
+      // Check in dynamicData if not a standard field
+      if (value === undefined && job.dynamicData && typeof job.dynamicData === 'object') {
+        value = (job.dynamicData as any)[field];
+      }
+      
       if (value !== null && value !== undefined && value !== '') {
-        messageBody += `• ${label}: ${value}\n`;
+        // If the value is an object/array, stringify it cleanly
+        if (typeof value === 'object') {
+          messageBody += `• ${label}:\n  ${JSON.stringify(value, null, 2).replace(/\n/g, '\n  ')}\n`;
+        } else {
+          messageBody += `• ${label}: ${value}\n`;
+        }
       }
     }
 
