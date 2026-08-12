@@ -13,6 +13,16 @@ type Document = {
   createdAt: string;
 };
 
+type Discrepancy = {
+  id: string;
+  field: string;
+  oldValue: string | null;
+  newValue: string | null;
+  sourceDocType: string | null;
+  status: string;
+  createdAt: string;
+};
+
 type Job = {
   id: string;
   jobNumber: string;
@@ -38,6 +48,7 @@ type Job = {
   emailThreadId: string | null;
   recipientEmail: string | null;
   documents: Document[];
+  discrepancies: Discrepancy[];
 };
 
 const ALL_FIELDS = [
@@ -208,6 +219,15 @@ export default function JobDetails({ params }: { params: { id: string } }) {
     fetchJob(); // Refresh the list
   };
 
+  const handleDiscrepancy = async (id: string, action: 'ACCEPT' | 'REJECT') => {
+    await fetch(`/api/discrepancies/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    fetchJob(); // Refresh the data
+  };
+
   if (loading) return <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}><p style={{ color: '#94a3b8' }}>Loading Details...</p></main>;
   if (!job) return <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}><p style={{ color: '#ef4444' }}>Job not found</p></main>;
 
@@ -322,12 +342,53 @@ export default function JobDetails({ params }: { params: { id: string } }) {
             )}
           </div>
         </section>
+
+        <section className="glass-panel" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
+          <h2 style={{ marginTop: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: '#ef4444' }}>AI Alerts & Audit Log (Discrepancies)</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+            {!job.discrepancies || job.discrepancies.length === 0 ? (
+              <p style={{ color: '#94a3b8' }}>No discrepancies found.</p>
+            ) : (
+              job.discrepancies.map((disc) => (
+                <div key={disc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', borderLeft: `4px solid ${disc.status === 'UNRESOLVED' ? '#ef4444' : disc.status === 'ACCEPTED' ? '#10b981' : '#64748b'}` }}>
+                  <div>
+                    <strong style={{ fontSize: '1.1rem', color: '#fff' }}>Data Mismatch: {disc.field}</strong>
+                    <span style={{ marginLeft: '8px', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem' }}>Source: {disc.sourceDocType || 'AI'}</span>
+                    <p style={{ margin: '8px 0 0 0', fontSize: '0.95rem', color: '#cbd5e1' }}>
+                      Current System Value: <span style={{ color: '#ef4444', textDecoration: 'line-through', marginRight: '8px' }}>{disc.oldValue || '(Empty)'}</span> 
+                      ➡️ New Value in PDF: <strong style={{ color: '#10b981' }}>{disc.newValue}</strong>
+                    </p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+                      Status: <span style={{ color: disc.status === 'UNRESOLVED' ? '#ef4444' : disc.status === 'ACCEPTED' ? '#10b981' : '#64748b' }}>{disc.status}</span> | Detected: {new Date(disc.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  {disc.status === 'UNRESOLVED' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => handleDiscrepancy(disc.id, 'REJECT')} style={{ background: '#475569', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        Keep Old Data (Reject)
+                      </button>
+                      <button onClick={() => handleDiscrepancy(disc.id, 'ACCEPT')} style={{ background: '#10b981', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        Use New Data (Accept)
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       </div>
 
-      <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+      <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', display: 'flex', gap: '1rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
         {job.status === 'NEW' && (
           <button onClick={openEmailModal} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.8rem 2rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}>
             Approve Pre-advise & Send Emails
+          </button>
+        )}
+        
+        {job.status === 'DOCUMENTS_RECEIVED' && (
+          <button onClick={() => updateStatus('DOCUMENTS_COMPLETED')} style={{ background: '#10b981', color: 'white', border: 'none', padding: '0.8rem 2rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}>
+            Mark Documents as Complete
           </button>
         )}
         

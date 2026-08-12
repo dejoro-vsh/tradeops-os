@@ -46,6 +46,7 @@ model Job {
   updatedAt       DateTime  @updatedAt
 
   documents       Document[]
+  discrepancies   Discrepancy[]
 }
 
 model Document {
@@ -57,4 +58,17 @@ model Document {
   url         String
   status      String   @default("PENDING_APPROVAL")
   createdAt   DateTime @default(now())
+}
+
+model Discrepancy {
+  id            String   @id @default(uuid())
+  jobId         String
+  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  field         String   // e.g., 'weightKgs', 'volumeCbm', 'containerNo'
+  oldValue      String?
+  newValue      String?
+  sourceDocType String?  // e.g., 'Draft B/L', 'Commercial Invoice'
+  status        String   @default("UNRESOLVED") // UNRESOLVED, ACCEPTED, REJECTED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
